@@ -1,5 +1,3 @@
-
-
 /**
   ******************************************************************************
   * @file    main.c
@@ -17,17 +15,11 @@
 #include"main.h"
 #include "led.h"
 
-//#define PRINT_EN
-//#define SEMI_EN
-
 void task1_handler(void); //This is task1
 void task2_handler(void); //this is task2
 void task3_handler(void); //this is task3
 void task4_handler(void); // this is task4 of the application
 
-#ifdef SEMI_EN
-extern void initialise_monitor_handles(void);
-#endif
 
 void init_systick_timer(uint32_t tick_hz);
 __attribute__((naked)) void init_scheduler_stack(uint32_t sched_top_of_stack);
@@ -41,8 +33,12 @@ void task_delay(uint32_t tick_count);
 
 uint8_t current_task = 1; //task1 is running
 
+
 uint32_t g_tick_count = 0;
 
+const uint32_t const_v_1 = 100;
+const uint32_t const_v_2 = 100;
+const uint8_t const_V_3 = 100;
 typedef struct
 {
 	uint32_t psp_value;
@@ -51,24 +47,21 @@ typedef struct
 	void (*task_handler)(void);
 }TCB_t;
 
-TCB_t user_tasks[10];
+TCB_t user_tasks[MAX_TASKS];
 
-uint16_t some_random_data = 0x14f4;
-uint16_t some_data[100] = {2000,2000,300};
+//semihosting init function 
+extern void initialise_monitor_handles(void);
+
 int main(void)
 {
-#ifdef SEMI_EN
-	initialise_monitor_handles();
-#endif
-
-#ifdef PRINT_EN
-	printf("Hello world\n");
-	printf(" first task launched \n");
-#endif
 
 	enable_processor_faults();
+	
+	initialise_monitor_handles();
 
 	init_scheduler_stack(SCHED_STACK_START);
+
+	printf("Implementation of simple task scheduler\n");
 
 	init_tasks_stack();
 
@@ -78,7 +71,6 @@ int main(void)
 
 	switch_sp_to_psp();
 
-	
 	task1_handler();
 
 	for(;;);
@@ -95,11 +87,11 @@ void task1_handler(void)
 {
 	while(1)
 	{
-		printf("Task-1 handler executing\n");
+		printf("Task1 is executing\n");
 		led_on(LED_GREEN);
-		task_delay(some_data[0]);
+		task_delay(1000);
 		led_off(LED_GREEN);
-		task_delay(some_data[0]);
+		task_delay(1000);
 	}
 
 }
@@ -108,10 +100,11 @@ void task2_handler(void)
 {
 	while(1)
 	{
+		printf("Task2 is executing\n");
 		led_on(LED_ORANGE);
-		task_delay(some_data[1]);
+		task_delay(1000);
 		led_off(LED_ORANGE);
-		task_delay(some_data[1]);
+		task_delay(1000);
 	}
 
 }
@@ -120,6 +113,7 @@ void task3_handler(void)
 {
 	while(1)
 	{
+		printf("Task3 is executing\n");
 		led_on(LED_BLUE);
 		task_delay(250);
 		led_off(LED_BLUE);
@@ -133,6 +127,7 @@ void task4_handler(void)
 {
 	while(1)
 	{
+		printf("Task4 is executing\n");
 		led_on(LED_RED);
 		task_delay(125);
 		led_off(LED_RED);
@@ -392,30 +387,23 @@ void  SysTick_Handler(void)
     *pICSR |= ( 1 << 28);
 }
 
-
 //2. implement the fault handlers
 void HardFault_Handler(void)
 {
-#ifdef PRINT_EN
 	printf("Exception : Hardfault\n");
-#endif
 	while(1);
 }
 
 
 void MemManage_Handler(void)
 {
-#ifdef PRINT_EN
 	printf("Exception : MemManage\n");
-#endif
 	while(1);
 }
 
 void BusFault_Handler(void)
 {
-#ifdef PRINT_EN
 	printf("Exception : BusFault\n");
-#endif
 	while(1);
 }
 
