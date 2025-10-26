@@ -1,34 +1,37 @@
 CC=arm-none-eabi-gcc
 MACH=cortex-m4
 CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=soft -std=gnu11 -Wall -O0
-LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=soft --specs=nano.specs -T stm32_ls.ld -Wl,-Map=final.map
-LDFLAGS_SH= -mcpu=$(MACH) -mthumb -mfloat-abi=soft --specs=rdimon.specs -T stm32_ls.ld -Wl,-Map=final.map
+LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=soft --specs=nano.specs -T source/stm32_ls.ld -Wl,-Map=out/final.map
+LDFLAGS_SH= -mcpu=$(MACH) -mthumb -mfloat-abi=soft --specs=rdimon.specs -T source/stm32_ls.ld -Wl,-Map=out/final.map
 
-all:main.o led.o stm32_startup.o syscalls.o final.elf
+all: out/main.o out/led.o out/stm32_startup.o out/syscalls.o out/final.elf
 
-semi:main.o led.o stm32_startup.o syscalls.o final_sh.elf
+semi: out/main.o out/led.o out/stm32_startup.o out/syscalls.o out/final_sh.elf
 
-main.o:main.c
+out/main.o: source/main.c
+	mkdir -p out
 	$(CC) $(CFLAGS) -o $@ $^
 
-led.o:led.c
+out/led.o: source/led.c
+	mkdir -p out
 	$(CC) $(CFLAGS) -o $@ $^
 
-stm32_startup.o:stm32_startup.c
+out/stm32_startup.o: source/stm32_startup.c
+	mkdir -p out
 	$(CC) $(CFLAGS) -o $@ $^
 
-syscalls.o:syscalls.c
+out/syscalls.o: source/syscalls.c
+	mkdir -p out
 	$(CC) $(CFLAGS) -o $@ $^
 	
-final.elf: main.o led.o stm32_startup.o syscalls.o
+out/final.elf: out/main.o out/led.o out/stm32_startup.o out/syscalls.o
 	$(CC) $(LDFLAGS) -o $@ $^
 	
-final_sh.elf: main.o led.o stm32_startup.o
+out/final_sh.elf: out/main.o out/led.o out/stm32_startup.o
 	$(CC) $(LDFLAGS_SH) -o $@ $^
 
 clean:
-	rm -rf *.o *.elf
+	rm -rf out/
 
 load:
-
 	openocd -f board/stm32f4discovery.cfg 
